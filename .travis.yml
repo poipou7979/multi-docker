@@ -1,0 +1,22 @@
+sudo: requiared
+services:
+  - docker
+
+before_install:
+  - docker build -t pourya/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run pourya/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t pourya/multi-client ./client
+  - docker build -t pourya/multi-nginx ./nginx
+  - docker build -t pourya/multi-server ./server
+  - docker build -t pourya/multi-worker ./worker
+  # Log in to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # put those images to the docker hub
+  - docker push pourya/multi-client
+  - docker push pourya/multi-nginx
+  - docker push pourya/multi-server
+  - docker push pourya/multi-worker
